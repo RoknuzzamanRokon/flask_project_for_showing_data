@@ -93,3 +93,22 @@ def fetch_latest_record(engine):
         return None
 
 
+
+
+def new_group_data(table, engine):
+    query = f"""
+    SELECT ProviderFamily, COUNT(*) AS value_count
+    FROM {table}
+    WHERE DATE(created_at) = (
+        SELECT DATE(MAX(created_at)) 
+        FROM {table}
+    )
+    GROUP BY ProviderFamily;
+    """
+    df = pd.read_sql(query, engine)
+    return df  
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True, port=2424)
