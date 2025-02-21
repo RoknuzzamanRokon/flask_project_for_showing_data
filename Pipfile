@@ -10,6 +10,7 @@ sqlalchemy = "*"
 python-dotenv = "*"
 pandas = "*"
 pymysql = "*"
+flask-bcrypt = "*"
 
 [dev-packages]
 
