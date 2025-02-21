@@ -1,69 +1,85 @@
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #f4f4f4;
     margin: 0;
-    padding: 40px;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
+.login-container {
     background: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-h1,
-h2 {
+    padding: 30px;
+    width: 350px;
     text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+.register-container {
+    background: #fff;
+    padding: 30px;
+    width: 350px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
     margin-bottom: 20px;
+    font-weight: 600;
+    color: #333;
 }
 
-th,
-td {
-    padding: 10px;
+.input-group {
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
 }
 
-th {
-    background-color: #f2f2f2;
+.input-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 5px;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-    body {
-        padding: 20px; /* Reduce padding on smaller screens */
-    }
-
-    .container {
-        padding: 10px; /* Reduce padding inside the container */
-    }
-
-    table {
-        padding: 0; /* Remove padding from table for better spacing */
-    }
-
-    th,
-    td {
-        padding: 8px; /* Slightly reduce padding in table cells */
-    }
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
 }
 
-@media (max-width: 480px) {
-    h1,
-    h2 {
-        font-size: 1.5em; /* Adjust heading size for small screens */
-    }
+.btn {
+    width: 100%;
+    padding: 10px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
 
-    th,
-    td {
-        font-size: 0.9em; /* Reduce font size for table cells */
-    }
+.btn:hover {
+    background: #0056b3;
+}
+
+p {
+    margin-top: 15px;
+}
+
+a {
+    color: #007BFF;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
 }

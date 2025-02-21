@@ -11,6 +11,7 @@ python-dotenv = "*"
 pandas = "*"
 pymysql = "*"
 flask-bcrypt = "*"
+flask-login = "*"
 
 [dev-packages]
 
