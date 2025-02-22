@@ -38,6 +38,37 @@
       background: #c82333;
     }
 
+
+
+
+    .badge-3d {
+        transform: perspective(500px) translateZ(20px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2), 
+                    0 6px 12px rgba(0,0,0,0.1),
+                    inset 0 -2px 4px rgba(255,255,255,0.3);
+        transition: all 0.3s ease;
+        animation: badgePop 0.5s ease-out;
+        margin-left: 0.5rem; /* Adjust this value as needed */
+    }
+
+    @keyframes badgePop {
+        0% {
+            transform: scale(0.5) rotateX(-20deg);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1) rotateX(0);
+            opacity: 1;
+        }
+    }
+
+    .badge-3d:hover {
+        transform: perspective(500px) translateZ(30px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3), 
+                    0 12px 24px rgba(0,0,0,0.2),
+                    inset 0 -3px 6px rgba(255,255,255,0.4);
+    }
+
   </style>
 </head>
 
@@ -216,9 +247,9 @@
                   badgeClass = "bg-success";
                   contentHTML = `
                       <p class="mb-0">Total Hotel = ${totalHotelCount}</p>
-                      <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex justify-content-between align-items-center gap-2">
                           <span class="badge ${badgeClass} status-badge">Updated</span>
-                          <span class="mb-0">${numericStatus}</span>
+                          <span class="badge bg-primary fw-bold rounded-pill badge-3d">${numericStatus}</span>
                       </div>
                   `;
               }
