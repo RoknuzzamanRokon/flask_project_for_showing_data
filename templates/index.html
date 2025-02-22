@@ -193,40 +193,47 @@
 
 
 
+          // Update Supplier Status
+          const supplierDiv = document.getElementById("supplierStatus");
+          let supplierHTML = "";
 
-        // Update Supplier Status
-        const supplierDiv = document.getElementById("supplierStatus");
-        let supplierHTML = "";
+          // Convert to array and sort by updateCount (descending)
+          const sortedSuppliers = Object.entries(data.supplier_hotel_update_info)
+              .sort((a, b) => Number(b[1]) - Number(a[1]));
 
-        for (const [supplier, updateCount] of Object.entries(data.supplier_hotel_update_info)) {
-            const numericStatus = Number(updateCount);
-            const totalHotelCount = Number(data.supplier_hotel_total_data_count[supplier] || 0); // Ensure correct supplier match
+          for (const [supplier, updateCount] of sortedSuppliers) {
+              const numericStatus = Number(updateCount);
+              const totalHotelCount = Number(data.supplier_hotel_total_data_count[supplier] || 0);
 
-            let badgeClass, badgeText, extraInfo = "";
+              let badgeClass, contentHTML = "";
 
-            if (numericStatus === 0) {
-                badgeClass = "bg-danger";
-                badgeText = "Not Update";
-            } else {
-                badgeClass = "bg-success";
-                // Concatenate the extra information correctly
-                extraInfo += `<p class="mb-0">Total Hotel = ${totalHotelCount}</p>`;
-                extraInfo += `<p class="mb-0">Update = ${numericStatus}</p>`;
-                badgeText = "Updated";
-            }
+              if (numericStatus === 0) {
+                  badgeClass = "bg-danger";
+                  contentHTML = `
+                      <span class="badge ${badgeClass} status-badge">Not Update</span>
+                  `;
+              } else {
+                  badgeClass = "bg-success";
+                  contentHTML = `
+                      <p class="mb-0">Total Hotel = ${totalHotelCount}</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                          <span class="badge ${badgeClass} status-badge">Updated</span>
+                          <span class="mb-0">${numericStatus}</span>
+                      </div>
+                  `;
+              }
 
-            supplierHTML += `
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title text-capitalize">${supplier.replace(/([A-Z])/g, " $1")}</h6>
-                        ${extraInfo}
-                        <span class="badge ${badgeClass} status-badge">${badgeText}</span>
-                    </div>
-                </div>
-            `;
-        }
+              supplierHTML += `
+                  <div class="card shadow-sm">
+                      <div class="card-body">
+                          <h5 class="card-title text-capitalize">${supplier.replace(/([A-Z])/g, " $1")}</h5>
+                          ${contentHTML}
+                      </div>
+                  </div>
+              `;
+          }
 
-        supplierDiv.innerHTML = supplierHTML;
+          supplierDiv.innerHTML = supplierHTML;
 
 
 
