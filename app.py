@@ -203,6 +203,31 @@ def get_json_data():
                     "lelsfly": row_dict.get('letsfly'),
                     "illusionshotel": row_dict.get('illusionshotel'),
                 },
+                "supplier_hotel_total_data_count": {
+                    "hotelbeds": row_dict.get('hotelbeds_total_hotel_ids'),
+                    "ean": row_dict.get('ean_total_hotel_ids'),
+                    "agoda": row_dict.get('agoda_total_hotel_ids'),
+                    "mgholiday": row_dict.get('mgholiday_total_hotel_ids'),
+                    "restel": row_dict.get('restel_total_hotel_ids'),
+                    "stuba": row_dict.get('stuba_total_hotel_ids'),
+                    "hyperguestdirect": row_dict.get('hyperguestdirect_total_hotel_ids'),
+                    "tboglobal": row_dict.get('tbohotel_total_hotel_ids'),
+                    "goglobal": row_dict.get('goglobal_total_hotel_ids'),
+                    "ratehawkhotel": row_dict.get('ratehawkhotel_total_hotel_ids'),
+                    "adivahahotel": row_dict.get('adivahahotel_total_hotel_ids'),
+                    "grnconnect": row_dict.get('grnconnect_total_hotel_ids'),
+                    "juniper": row_dict.get('juniper_total_hotel_ids'),
+                    "mikihotel": row_dict.get('mikihotel_total_hotel_ids'),
+                    "paximumhotel": row_dict.get('paximumhotel_total_hotel_ids'),
+                    "adonishotel": row_dict.get('adonishotel_total_hotel_ids'),
+                    "w2mhotel": row_dict.get('w2mhotel_total_hotel_ids'),
+                    "oryxhotel": row_dict.get('oryxhotel_total_hotel_ids'),
+                    "dotw": row_dict.get('dotw_total_hotel_ids'),
+                    "hotelston": row_dict.get('hotelston_total_hotel_ids'),
+                    "lelsfly": row_dict.get('letsfly_total_hotel_ids'),
+                    "illusionshotel": row_dict.get('illusionshotel_total_hotel_ids'),
+                    
+                },
                 "get_last_update_data": row_dict.get('lastUpdate')
             }
 
