@@ -191,36 +191,43 @@
 
 
 
+
+
+
         // Update Supplier Status
         const supplierDiv = document.getElementById("supplierStatus");
         let supplierHTML = "";
-        for (const [supplier, status] of Object.entries(data.supplier_hotel_update_info)) {
-            const numericStatus = Number(status);
+
+        for (const [supplier, updateCount] of Object.entries(data.supplier_hotel_update_info)) {
+            const numericStatus = Number(updateCount);
+            const totalHotelCount = Number(data.supplier_hotel_total_data_count[supplier] || 0); // Ensure correct supplier match
+
             let badgeClass, badgeText, extraInfo = "";
-            
+
             if (numericStatus === 0) {
                 badgeClass = "bg-danger";
                 badgeText = "Not Update";
             } else {
                 badgeClass = "bg-success";
-                // Display the total number of IDs for this supplier
-                extraInfo = `<p class="mb-0">Total Hotel = ${numericStatus}</p>`;
+                // Concatenate the extra information correctly
+                extraInfo += `<p class="mb-0">Total Hotel = ${totalHotelCount}</p>`;
+                extraInfo += `<p class="mb-0">Update = ${numericStatus}</p>`;
                 badgeText = "Updated";
-
             }
-            
+
             supplierHTML += `
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h6 class="card-title text-capitalize">${supplier.replace(/([A-Z])/g, " $1")}</h6>
                         ${extraInfo}
                         <span class="badge ${badgeClass} status-badge">${badgeText}</span>
-
                     </div>
                 </div>
             `;
         }
+
         supplierDiv.innerHTML = supplierHTML;
+
 
 
 
