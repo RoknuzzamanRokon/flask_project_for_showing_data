@@ -1,165 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vervotech Data Overview</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotel Data Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- Custom CSS -->
+  <style>
+    .data-card {
+      transition: transform 0.2s;
+      min-height: 200px;
+    }
+    .data-card:hover {
+      transform: translateY(-5px);
+    }
+    .status-badge {
+      font-size: 0.9rem;
+      padding: 0.5em 0.75em;
+    }
+    .supplier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 1rem 0;
+    }
+    .btn-danger {
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s ease-in-out;
+    }
 
-    <script>
-      async function fetchLiveUpdates() {
-        try {
-          const response = await fetch("/live_updates");
-          const data = await response.json();
+    .btn-danger:hover {
+      background: #c82333;
+    }
 
-          if (response.ok) {
-            document.getElementById("total-done").innerText = data.count;
-            document.getElementById("last-update").innerText =
-              data.last_update || "N/A";
-          } else {
-            console.error("Error fetching live updates:", data.error);
-          }
-        } catch (error) {
-          console.error("Error fetching live updates:", error);
-        }
-      }
+  </style>
+</head>
 
-      setInterval(fetchLiveUpdates, 1200000);
-
-      setInterval(() => {
-        location.reload();
-      }, 1200000);  
-    </script>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Latest Record from Database</h1>
-      <h2>Content update vervotech table ---- Live Updates</h2>
-      <table border="2">
-        <thead>
-          <tr>
-            <th>TotalDone</th>
-            <th>LastUpdate</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td id="total-done">{{ live_updates.count }}</td>
-            <td id="last-update">{{ live_updates.last_update }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h2>Vervotech New Data</h2>
-      <table border="1">
-        <thead>
-          <tr>
-            <th>Total</th>
-            <th>New</th>
-            <th>Processing</th>
-            <th>UpdateSuccess</th>
-            <th>SkippingData</th>
-            <th>LastUpdate</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ latest_record.vh_new_total }}</td>
-            <td>{{ latest_record.vh_new_newFile }}</td>
-            <td>
-              {% if latest_record.vh_new_newFile_updateSuccess == 0 and latest_record.vh_new_newFile_updateSkipping == 0 %}
-                  {{ latest_record.vh_new_newFile }}
-              {% else %}
-                  0
-              {% endif %}
-            </td>
-            <td>{{ latest_record.vh_new_newFile_updateSuccess }}</td>
-            <td>{{ latest_record.vh_new_newFile_updateSkipping }}</td>
-            <td>{{ latest_record.vh_new_newFile_lastUpdate_dateTime }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h2>Vervotech Update Data</h2>
-      <table border="1">
-        <thead>
-            <tr>
-                <th>Total</th>
-                <th>UpdateNew</th>
-                <th>Processing</th>
-                <th>UpdateSuccess</th>
-                <th>SkippingData</th>
-                <th>LastUpdate</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ latest_record.vh_update_total }}</td>
-                <td>{{ latest_record.vh_update_newFile }}</td>
-                <td>
-                  {% if latest_record.vh_update_newFile_updateSuccess == 0 and latest_record.vh_update_newFile_updateSkipping == 0 %}
-                      {{ latest_record.vh_update_newFile }}
-                  {% else %}
-                      0 
-                  {% endif %}
-                </td>
-                <td>{{ latest_record.vh_update_newFile_updateSuccess }}</td>
-                <td>{{ latest_record.vh_update_newFile_updateSkipping }}</td>
-                <td>{{ latest_record.vh_update_newFile_lastUpdate_dateTime }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-      <h2>Vervotech Mapping</h2>
-      <table border="1">
-        <thead>
-          <tr>
-            <th>Total</th>
-            <th>NewData</th>
-            <th>UpdateData</th>
-            <th>LastUpdate</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ latest_record.vh_mapping_total }}</td>
-            <td>{{ latest_record.vh_mapping_newFile }}</td>
-            <td>{% set total_update_success = latest_record.vh_update_newFile_updateSuccess + latest_record.vh_new_newFile_updateSuccess %}
-              {% if total_update_success - latest_record.vh_mapping_newFile < 0 %}
-                  {{ latest_record.vh_new_newFile_updateSuccess }}
-              {% else %}
-                  {{ total_update_success - latest_record.vh_mapping_newFile }}
-              {% endif %}
-            </td>
-            <td>{{ latest_record.ModifiedOn }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-    <h2>Supplier Wise New and Updated Count--- by date - {{ latest_record.vh_new_newFile_lastUpdate_dateTime }}</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Provider Family</th>
-                <th>New Data</th>
-                <th>Update Data</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in group_data %}
-            <tr>
-                <td>{{ row.ProviderFamily }}</td>
-                <td>{{ row.value_count_new }}</td>
-                <td>{{ row.value_count_update }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-
+<body class="bg-light">
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container d-flex justify-content-between align-items-center">
+      <span class="navbar-brand mb-0 h1">Global Mapping Hotel Data Management Dashboard</span>
+      <a href="{{ url_for('logout') }}" class="btn btn-danger rounded-circle px-3 py-2">
+        🔒 Logout
+      </a>
     </div>
-  </body>
+  </nav>
+
+  <div class="container py-4">
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Last Update Summary</h5>
+          </div>
+          <div class="card-body" id="lastUpdateSummary">
+            <!-- Dynamic content will be loaded here -->
+            <div class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Update Information Section -->
+      <div class="col-lg-6">
+        <div class="card data-card shadow-sm">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Update Statistics</h5>
+          </div>
+          <div class="card-body" id="updateStats"></div>
+        </div>
+      </div>
+
+      <!-- Global Table Stats -->
+      <div class="col-lg-6">
+        <div class="card data-card shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Global Table Statistics</h5>
+          </div>
+          <div class="card-body" id="globalStats"></div>
+        </div>
+      </div>
+
+      <!-- Supplier Updates -->
+      <div class="col-12">
+        <div class="card data-card shadow-sm">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">Supplier Update Status</h5>
+          </div>
+          <div class="card-body">
+            <div class="supplier-grid" id="supplierStatus"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Fetch data when page loads
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/global-json-info")
+        .then((response) => {
+          if (!response.ok) throw new Error("Network response was not ok");
+          return response.json();
+        })
+        .then((data) => {
+
+            
+            // Update Last Update Summary
+            const lastUpdateDiv = document.getElementById("lastUpdateSummary");
+
+            const lastUpdateDate = new Date(data.get_last_update_data);
+            const currentDate = new Date();
+
+            // Calculate the difference in days
+            const timeDiff = Math.floor((currentDate - lastUpdateDate) / (1000 * 60 * 60 * 24));
+
+            // Determine if the content update is active or inactive
+            const isContentUpdateActive = timeDiff < 3;
+
+            lastUpdateDiv.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                <p class="mb-1"><strong>Last Updated:</strong> ${new Date(
+                    data.created_at
+                ).toLocaleDateString()}</p>
+                <p class="mb-1"><strong>Total Vervotech ID:</strong> <span class="badge bg-primary">${data.total_vervotech_id}</span></p>
+                <p class="mb-1"><strong>Total Giata ID:</strong> <span class="badge bg-primary">${data.total_giata_id}</span></p>
+                </div>
+                <div class="col-md-6">
+                <p class="mb-1"><strong>Last Content Data Update:</strong> ${lastUpdateDate.toLocaleDateString()}</p>
+                <p class="mb-1"><strong>Content Update Status:</strong> 
+                    <span class="badge ${isContentUpdateActive ? "bg-success" : "bg-danger"}">
+                    ${isContentUpdateActive ? "Active" : "Inactive"}
+                    </span>
+                </p>
+                </div>
+            </div>
+            `;
+
+
+
+          // Update Update Statistics
+          const updateStatsDiv = document.getElementById("updateStats");
+          updateStatsDiv.innerHTML = `
+            <div class="row">
+              <div class="col-md-6">
+                <h6>New Data</h6>
+                <p class="mb-1">Total New: <span class="badge bg-info">${data.update_info.total_get_new}</span></p>
+                <p class="mb-1">Success: <span class="badge bg-success">${data.update_info.find_new_data_success}</span></p>
+                <p class="mb-1">Skipped: <span class="badge bg-warning">${data.update_info.find_new_data_skipping}</span></p>
+                <small class="text-muted">Last update: ${new Date(
+                  data.update_info.new_file_last_update
+                ).toLocaleString()}</small>
+              </div>
+              <div class="col-md-6">
+                <h6>Update Data</h6>
+                <p class="mb-1">Total Updates: <span class="badge bg-info">${data.update_info.total_get_update}</span></p>
+                <p class="mb-1">Success: <span class="badge bg-success">${data.update_info.find_update_data_success}</span></p>
+                <p class="mb-1">Skipped: <span class="badge bg-warning">${data.update_info.find_update_data_skipping}</span></p>
+                <small class="text-muted">Last update: ${new Date(
+                  data.update_info.update_file_last_update
+                ).toLocaleString()}</small>
+              </div>
+            </div>
+          `;
+
+          // Update Global Statistics
+          const globalStatsDiv = document.getElementById("globalStats");
+          globalStatsDiv.innerHTML = `
+            <p class="mb-1"><strong>Total Global IDs:</strong> <span class="badge bg-success">${data.global_table.total_global_table_id}</span></p>
+            <p class="mb-1"><strong>New Additions:</strong> <span class="badge bg-info">${data.global_table.global_table_new_add}</span></p>
+            <p class="mb-1"><strong>Last Added:</strong> ${new Date(
+              data.global_table.new_data_add_time
+            ).toLocaleDateString()}</p>
+          `;
+
+
+
+
+        // Update Supplier Status
+        const supplierDiv = document.getElementById("supplierStatus");
+        let supplierHTML = "";
+        for (const [supplier, status] of Object.entries(data.supplier_hotel_update_info)) {
+            const numericStatus = Number(status);
+            let badgeClass, badgeText, extraInfo = "";
+            
+            if (numericStatus === 0) {
+                badgeClass = "bg-danger";
+                badgeText = "Not Update";
+            } else {
+                badgeClass = "bg-success";
+                // Display the total number of IDs for this supplier
+                extraInfo = `<p class="mb-0">Total Hotel = ${numericStatus}</p>`;
+                badgeText = "Updated";
+
+            }
+            
+            supplierHTML += `
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-capitalize">${supplier.replace(/([A-Z])/g, " $1")}</h6>
+                        ${extraInfo}
+                        <span class="badge ${badgeClass} status-badge">${badgeText}</span>
+
+                    </div>
+                </div>
+            `;
+        }
+        supplierDiv.innerHTML = supplierHTML;
+
+
+
+
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          document.getElementById("lastUpdateSummary").innerHTML = `
+            <div class="alert alert-danger" role="alert">
+              Failed to load data: ${error.message}
+            </div>
+          `;
+        });
+    });
+  </script>
+</body>
 </html>
