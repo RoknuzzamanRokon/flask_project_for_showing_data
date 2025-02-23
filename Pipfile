@@ -12,6 +12,8 @@ pandas = "*"
 pymysql = "*"
 flask-bcrypt = "*"
 flask-login = "*"
+streamlit = "*"
+plotly = "*"
 
 [dev-packages]
 
