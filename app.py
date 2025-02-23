@@ -187,7 +187,7 @@ def get_json_data():
                     "restel": row_dict.get('restel'),
                     "stuba": row_dict.get('stuba'),
                     "hyperguestdirect": row_dict.get('hyperguestdirect'),
-                    "tboglobal": row_dict.get('tbohotel'),
+                    "tbohotel": row_dict.get('tbohotel'),
                     "goglobal": row_dict.get('goglobal'),
                     "ratehawkhotel": row_dict.get('ratehawkhotel'),
                     "adivahahotel": row_dict.get('adivahahotel'),
@@ -211,7 +211,7 @@ def get_json_data():
                     "restel": row_dict.get('restel_total_hotel_ids'),
                     "stuba": row_dict.get('stuba_total_hotel_ids'),
                     "hyperguestdirect": row_dict.get('hyperguestdirect_total_hotel_ids'),
-                    "tboglobal": row_dict.get('tbohotel_total_hotel_ids'),
+                    "tbohotel": row_dict.get('tbohotel_total_hotel_ids'),
                     "goglobal": row_dict.get('goglobal_total_hotel_ids'),
                     "ratehawkhotel": row_dict.get('ratehawkhotel_total_hotel_ids'),
                     "adivahahotel": row_dict.get('adivahahotel_total_hotel_ids'),
@@ -228,7 +228,9 @@ def get_json_data():
                     "illusionshotel": row_dict.get('illusionshotel_total_hotel_ids'),
                     
                 },
-                "get_last_update_data": row_dict.get('lastUpdate')
+                "get_last_update_data": row_dict.get('lastUpdate'),
+                "vervotech_ids_total": row_dict.get('vervotech_ids_total'),
+                "giata_ids_total": row_dict.get('giata_ids_total'),
             }
 
             return jsonify(response)
@@ -236,6 +238,65 @@ def get_json_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+
+from datetime import datetime
+
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    try:
+        # Get all historical data
+        query = text("""
+            SELECT *, DATE(created_at) as date 
+            FROM vervotech_update_data_info 
+            ORDER BY created_at DESC;
+        """)
+
+        with engine.connect() as connection:
+            result = connection.execute(query)
+            columns = result.keys()
+            data = [dict(zip(columns, row)) for row in result.fetchall()]
+        
+        # Ensure date is properly formatted
+        for entry in data:
+            if isinstance(entry['date'], str): 
+                entry['date'] = datetime.strptime(entry['date'], '%Y-%m-%d')
+
+        # Prepare chart data
+        chart_data = {
+            'dates': [entry['date'].strftime('%Y-%m-%d') for entry in data],
+            'total_mappings': [int(entry.get('global_mapping_total', 0)) for entry in data],
+            'new_success': [int(entry.get('vh_new_newFile_updateSuccess', 0)) for entry in data],
+            'update_success': [int(entry.get('vh_update_newFile_updateSuccess', 0)) for entry in data],
+            'success_ratio': [
+                (int(entry.get('vh_new_newFile_updateSuccess', 0)) + 
+                 int(entry.get('vh_update_newFile_updateSuccess', 0))) / 
+                max((int(entry.get('vh_new_newFile', 0)) + 
+                     int(entry.get('vh_update_newFile', 0))), 1) * 100  # Avoid division by zero
+                for entry in data
+            ]
+        }
+
+        # Add project milestones data
+        chart_data['project_milestones'] = {
+            'phases': ['Phase 1: Data Collection', 'Phase 2: System Integration', 
+                       'Phase 3: Testing', 'Phase 4: Deployment'],
+            'progress': [100, 100, 75, 30]  # Example percentages
+        }
+
+        return render_template(
+            "dashboard.html",
+            data=data,
+            chart_data=chart_data,
+            latest=data[0] if data else None
+        )
+
+    except Exception as e:
+        print(f"Dashboard Error: {e}")
+        flash(f"Error loading data: {str(e)}", "danger")
+        return redirect(url_for('index')) 
+    
 
 if __name__ == '__main__':
     app.run(debug=True, port=2424)
