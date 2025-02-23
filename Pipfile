@@ -18,7 +18,12 @@ flask-jwt-extended = "*"
 flask-limiter = "*"
 flask-talisman = "*"
 flask-cors = "*"
-pyjwt = "*"
+pyjwt = "==1.7.1"
+markupsafe = "==2.0.1"
+jinja2 = "==3.1.2"
+itsdangerous = "==2.0.1"
+werkzeug = "==2.0.3"
+matplotlib = "*"
 
 [dev-packages]
 

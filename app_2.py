@@ -5,11 +5,21 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from dotenv import load_dotenv
-from datetime import datetime
-from flask import redirect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+from flask_talisman import Talisman
+from flask_cors import CORS
+
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 
 app = Flask(__name__)
+
+
+# CORS: API is accessed from different domains
+CORS(app)
+# For security handle
 load_dotenv()
 
 # Database connection details
@@ -20,11 +30,19 @@ db_name = os.getenv('DB_NAME')
 
 # Flask authentication setup.
 app.secret_key = os.getenv('SECRET_KEY')
-bcrypt = Bcrypt(app)
+app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'  # Replace with a strong secret key
+jwt = JWTManager(app)
+
 
 
 DATABASE_URL = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}/{db_name}"
 engine = create_engine(DATABASE_URL)
+
+
+# Create a scoped session
+Session = scoped_session(sessionmaker(bind=engine))
+db_session = Session()
+
 
 
 # Flask login setup
@@ -32,11 +50,22 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-# Create a scoped session
-Session = scoped_session(sessionmaker(bind=engine))
-db_session = Session()
+# bcrypt = Bcrypt()
+# db_session = scoped_session(sessionmaker())  # This is unbound!
 
-# Flask Login setup
+
+# Initialize JWT
+jwt = JWTManager(app)
+
+# Configure rate limiting
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["60 per minute"]
+)
+
+
+
 class User(UserMixin):
     def __init__(self, id, username, password):
         self.id = id
@@ -50,7 +79,7 @@ class User(UserMixin):
         if result:
             return User(*result)
         return None
-    
+
     @staticmethod
     def find_by_username(username):
         query = text("SELECT id, username, password FROM users WHERE username = :username")
@@ -58,7 +87,22 @@ class User(UserMixin):
         if result:
             return User(*result)
         return None
-    
+
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password, password)
+
+
+
+
+
+@app.route('/protected', methods=['GET'])
+@jwt_required
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
@@ -81,22 +125,26 @@ def register():
     
     return render_template("register.html")
 
-@app.route('/login', methods=['GET', 'POST'])
+
+
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.find_by_username(username)
+    if request.is_json:
+        username = request.json.get('username', None)
+        password = request.json.get('password', None)
+    else:
+        username = request.form.get('username', None)
+        password = request.form.get('password', None)
 
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            flash("Login successful!", "success")
-            return redirect(url_for('index'))
-        else:
-            flash("Invalid username or password", "danger")
-    
-    return render_template("login.html")
+    if not username or not password:
+        return jsonify({"msg": "Missing username or password"}), 400
 
+    user = User.find_by_username(username)
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=user.id)
+        return jsonify(access_token=access_token), 200
+    else:
+        return jsonify({"msg": "Bad username or password"}), 401
 
 
 
@@ -142,7 +190,7 @@ def get_last_row():
 
 
 @app.route('/global-json-info', methods=['GET'])
-@login_required
+@jwt_required
 def get_json_data():
     try:
         query = text("""
@@ -231,7 +279,9 @@ def get_json_data():
                     "illusionshotel": row_dict.get('illusionshotel_total_hotel_ids'),
                     
                 },
-                "get_last_update_data": row_dict.get('lastUpdate')
+                "get_last_update_data": row_dict.get('lastUpdate'),
+                "vervotech_ids_total": row_dict.get('vervotech_ids_total'),
+                "giata_ids_total": row_dict.get('giata_ids_total'),
             }
 
             return jsonify(response)
@@ -240,8 +290,11 @@ def get_json_data():
         return jsonify({"error": str(e)}), 500
 
 
+
+from datetime import datetime
+
 @app.route('/dashboard', methods=['GET'])
-@login_required
+@jwt_required
 def dashboard():
     try:
         # Get all historical data
@@ -258,7 +311,7 @@ def dashboard():
         
         # Ensure date is properly formatted
         for entry in data:
-            if isinstance(entry['date'], str):  # Convert if it's a string
+            if isinstance(entry['date'], str): 
                 entry['date'] = datetime.strptime(entry['date'], '%Y-%m-%d')
 
         # Prepare chart data
@@ -293,17 +346,8 @@ def dashboard():
     except Exception as e:
         print(f"Dashboard Error: {e}")
         flash(f"Error loading data: {str(e)}", "danger")
-        return redirect(url_for('index'))  # Redirect to a safe page instead of looping
-
-
-
-@app.route('/streamlit-dashboard')
-def streamlit_dashboard():
-    # Redirect to your Streamlit app's URL
-    return redirect('http://localhost:8501')  # Or use the network URL
-
-
-
+        return redirect(url_for('index')) 
+    
 
 if __name__ == '__main__':
     app.run(debug=True, port=2424)
