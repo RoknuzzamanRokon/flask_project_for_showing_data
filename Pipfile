@@ -14,6 +14,11 @@ flask-bcrypt = "*"
 flask-login = "*"
 streamlit = "*"
 plotly = "*"
+flask-jwt-extended = "*"
+flask-limiter = "*"
+flask-talisman = "*"
+flask-cors = "*"
+pyjwt = "*"
 
 [dev-packages]
 

@@ -6,24 +6,102 @@ import plotly.express as px
 # Flask API URL
 FLASK_API_URL = "http://127.0.0.1:2424/global-json-info"
 
+
+
+import time
+
+# Add these at the top with other constants
+TOKEN_EXPIRATION = 300  # 1 hour in seconds
+MAX_REQUESTS_PER_MINUTE = 2  # Rate limiting
+
 def fetch_data():
     session = requests.Session()
     login_url = "http://127.0.0.1:2424/login"
     credentials = {"username": "rokon", "password": "rokon"}
     
-    response = session.post(login_url, data=credentials)
-    if response.status_code != 200:
-        st.error("Login failed. Please check your credentials.")
-        return None
-
-    response = session.get(FLASK_API_URL)
-    if response.status_code == 200:
-        return response.json()
-    elif response.status_code == 302:
-        st.error("API is redirecting to login. Authentication required.")
+    # Track request count and last request time
+    if not hasattr(fetch_data, "request_count"):
+        fetch_data.request_count = 0
+    if not hasattr(fetch_data, "last_request_time"):
+        fetch_data.last_request_time = time.time()
+    
+    # Check rate limit
+    current_time = time.time()
+    if current_time - fetch_data.last_request_time < 60:  # 1 minute window
+        if fetch_data.request_count >= MAX_REQUESTS_PER_MINUTE:
+            st.error("Rate limit exceeded. Please try again later.")
+            return None
     else:
-        st.error(f"Unexpected error: {response.status_code}")
-    return None
+        # Reset counter if more than 1 minute has passed
+        fetch_data.request_count = 0
+        fetch_data.last_request_time = current_time
+
+    # Generate or renew token
+    if not hasattr(fetch_data, "token") or (current_time - getattr(fetch_data, "token_timestamp", 0)) > TOKEN_EXPIRATION:
+        # Request new token
+        response = session.post(login_url, json=credentials)
+        if response.status_code != 200:
+            st.error("Login failed. Please check your credentials.")
+            return None
+        
+        # Extract token from response
+        try:
+            fetch_data.token = response.json().get("access_token")
+            fetch_data.token_timestamp = current_time
+        except Exception as e:
+            st.error(f"Token extraction failed: {str(e)}")
+            return None
+
+    # Make authenticated request
+    headers = {
+        "Authorization": f"Bearer {fetch_data.token}",
+        "Content-Type": "application/json"
+    }
+    
+    try:
+        response = session.get(FLASK_API_URL, headers=headers)
+        fetch_data.request_count += 1
+        
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 401:
+            st.error("Token expired. Renewing...")
+            del fetch_data.token 
+            return fetch_data() 
+        elif response.status_code == 429:
+            st.error("API rate limit exceeded. Please wait...")
+            return None
+        else:
+            st.error(f"API request failed: {response.status_code}")
+            return None
+            
+    except Exception as e:
+        st.error(f"Request failed: {str(e)}")
+        return None
+    
+
+
+# def fetch_data():
+#     session = requests.Session()
+#     login_url = "http://127.0.0.1:2424/login"
+#     credentials = {"username": "rokon", "password": "rokon"}
+    
+#     response = session.post(login_url, data=credentials)
+#     if response.status_code != 200:
+#         st.error("Login failed. Please check your credentials.")
+#         return None
+
+#     response = session.get(FLASK_API_URL)
+#     if response.status_code == 200:
+#         return response.json()
+#     elif response.status_code == 302:
+#         st.error("API is redirecting to login. Authentication required.")
+#     else:
+#         st.error(f"Unexpected error: {response.status_code}")
+#     return None
+
+
+
 
 def clean_text(value):
     return str(value).encode('utf-8', 'ignore').decode('utf-8')
