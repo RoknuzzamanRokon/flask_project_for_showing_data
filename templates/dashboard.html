@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hotel Mapping Analytics Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4e73df;
+        --success-color: #1cc88a;
+        --info-color: #36b9cc;
+        --warning-color: #f6c23e;
+        --chart-grid-color: #f0f2f6;
+      }
+
+      body {
+        background-color: #f8f9fc;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .dashboard-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: auto;
+      }
+
+      .icon-wrapper {
+        transition: all 0.3s ease;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .icon-wrapper:hover {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        transform: translateY(-1px);
+      }
+
+      .status-card {
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .status-card:hover {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+      }
+
+      .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .metric-card {
+        border: none;
+        border-radius: 0.5rem;
+        transition: transform 0.3s ease;
+        background: white;
+      }
+
+      .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      }
+
+      .card-title {
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        color: #6e707e;
+        font-weight: 600;
+      }
+
+      .metric-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .metric-subtext {
+        font-size: 0.85rem;
+        color: #858796;
+      }
+
+      .chart-container {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      .data-table {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      .dataTables_wrapper {
+        padding: 0 !important;
+      }
+
+      table.dataTable thead th {
+        border-bottom: 2px solid #e3e6f0 !important;
+      }
+
+      .trend-indicator {
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+      }
+
+      .positive-trend {
+        color: var(--success-color);
+      }
+      .negative-trend {
+        color: #e74a3b;
+      }
+
+      .comma {
+        font-family: "Roboto Mono", monospace;
+        font-weight: 500;
+        color: #3a3b45;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="dashboard-header">
+      <div class="container-fluid px-4 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-4">
+            <!-- Home Icon with Hover Effect -->
+
+            <!-- Main Title with Enhanced Typography -->
+            <div class="d-flex flex-column">
+              <h1 class="mb-0 text-white fw-semibold fs-3">
+                <i class="fas fa-hotel me-2 text-warning"></i>Hotel Mapping
+                Analytics
+              </h1>
+              <span class="text-white-50 small mt-1"
+                >Comprehensive Data Management Platform</span
+              >
+            </div>
+          </div>
+          <a
+            href="{{ url_for('index') }}"
+            class="text-decoration-none"
+            title="Return to Home"
+          >
+            <div
+              class="icon-wrapper bg-white bg-opacity-10 rounded-circle p-2 transition-all"
+            >
+              <i class="fas fa-home fa-lg text-white"></i>
+            </div>
+          </a>
+
+          <!-- Refresh Status with Card Style -->
+          <div
+            class="status-card bg-white bg-opacity-10 rounded-3 px-3 py-2 transition-all"
+          >
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-sync-alt text-white-50"></i>
+              <div class="text-end">
+                <div class="text-white-50 small lh-1">Last Refresh</div>
+                <div class="text-white fw-medium fs-6 lh-1">
+                  {{ latest.created_at.strftime('%Y-%m-%d %H:%M') if latest else
+                  'N/A' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container-fluid px-4" style="margin-top: 16px">
+      <!-- Key Metrics Row -->
+      <div class="row g-4">
+        <!-- Total Mappings Card -->
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title text-uppercase">Total Mappings</h5>
+                  <h2 class="metric-value comma">
+                    {{ latest.global_mapping_total if latest else 0 }}
+                  </h2>
+                </div>
+                <div class="bg-primary text-white rounded-circle p-3">
+                  <i class="fas fa-map-marked-alt fa-2x"></i>
+                </div>
+              </div>
+              <div class="metric-subtext">
+                <i class="fas fa-clock me-1"></i>
+                Updated: {{ latest.created_at.strftime('%H:%M') if latest else
+                'N/A' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Success Card -->
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title text-uppercase">New Success Rate</h5>
+                  <div class="d-flex align-items-center">
+                    <h2 class="metric-value">
+                      {% if latest %} {{ new_rate }}% {% else %} 0% {% endif %}
+                    </h2>
+                    <span class="trend-indicator positive-trend">
+                      <i class="fas fa-arrow-up"></i> 2.5%
+                    </span>
+                  </div>
+                </div>
+                <div class="bg-success text-white rounded-circle p-3">
+                  <i class="fas fa-chart-line fa-2x"></i>
+                </div>
+              </div>
+              <div class="metric-subtext">
+                <span class="comma"
+                  >{{ latest.vh_new_newFile_updateSuccess if latest else 0
+                  }}</span
+                >
+                successful of
+                <span class="comma"
+                  >{{ latest.vh_new_newFile if latest else 0 }}</span
+                >
+                attempts
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Update Success Card -->
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title text-uppercase">Update Success</h5>
+                  <div class="d-flex align-items-center">
+                    <h2 class="metric-value">
+                      {% if latest %} {{ update_rate }}% {% else %} 0% {% endif
+                      %}
+                    </h2>
+                    <span class="trend-indicator negative-trend">
+                      <i class="fas fa-arrow-down"></i> 1.2%
+                    </span>
+                  </div>
+                </div>
+                <div class="bg-info text-white rounded-circle p-3">
+                  <i class="fas fa-sync-alt fa-2x"></i>
+                </div>
+              </div>
+              <div class="metric-subtext">
+                <span class="comma"
+                  >{{ latest.vh_update_newFile_updateSuccess if latest else 0
+                  }}</span
+                >
+                updated of
+                <span class="comma"
+                  >{{ latest.vh_update_newFile if latest else 0 }}</span
+                >
+                total
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Provider Coverage Card -->
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title text-uppercase">Database Coverage</h5>
+                  <h2 class="metric-value comma">
+                    {{ latest.vervotech_ids_total if latest else 0 }}
+                  </h2>
+                </div>
+                <div class="bg-warning text-dark rounded-circle p-3">
+                  <i class="fas fa-database fa-2x"></i>
+                </div>
+              </div>
+              <div class="metric-subtext">
+                <i class="fas fa-calendar-alt me-1"></i>
+                Current cycle: {{ current_cycle }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="row mt-4 g-4">
+        <div class="col-xl-8">
+          <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="m-0 text-primary">
+                <i class="fas fa-chart-area me-2"></i>Mapping Growth Timeline
+              </h5>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary active">
+                  30D
+                </button>
+                <button class="btn btn-sm btn-outline-secondary">90D</button>
+                <button class="btn btn-sm btn-outline-secondary">YTD</button>
+              </div>
+            </div>
+            <div id="timelineChart" style="height: 400px"></div>
+          </div>
+        </div>
+
+        <div class="col-xl-4">
+          <div class="chart-container h-100">
+            <h5 class="text-primary mb-4">
+              <i class="fas fa-percent me-2"></i>Success Ratio Trend
+            </h5>
+            <div id="successChart" style="height: 400px"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+    <div class="col-xl-6">
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="m-0 text-primary"><i class="fas fa-exchange-alt me-2"></i>Daily Changes Comparison</h5>
+            </div>
+            <div id="dailyChangeChart" style="height: 400px;"></div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="m-0 text-primary"><i class="fas fa-chart-pie me-2"></i>Success Distribution</h5>
+            </div>
+            <div id="distributionChart" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+
+
+
+      <!-- Data Table Section -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="data-table">
+            <div class="card border-0">
+              <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="m-0 text-primary">
+                  <i class="fas fa-table me-2"></i>Historical Performance Data
+                </h5>
+              </div>
+              <div class="card-body pt-0">
+                <div class="table-responsive">
+                  <table class="table table-hover" id="dataTable">
+                    <thead class="bg-light">
+                      <tr>
+                        <th>Date</th>
+                        <th>New Success</th>
+                        <th>New Skipped</th>
+                        <th>Update Success</th>
+                        <th>Update Skipped</th>
+                        <th>Total Vervotech IDs</th>
+                        <th>Total Giata IDs</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for entry in data %}
+                      <tr>
+                        <td>{{ entry.date }}</td>
+                        <td class="comma">
+                          {{ entry.vh_new_newFile_updateSuccess }}
+                        </td>
+                        <td class="comma">
+                          {{ entry.vh_new_newFile_skipped if
+                          entry.vh_new_newFile_skipped is defined else 0 }}
+                        </td>
+                        <td class="comma">
+                          {{ entry.vh_update_newFile_updateSuccess }}
+                        </td>
+                        <td class="comma">
+                          {{ entry.vh_update_newFile_updateSkipping }}
+                        </td>
+                        <td class="comma">{{ entry.vervotech_ids_total }}</td>
+                        <td class="comma">{{ entry.giata_ids_total }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+              // Enhanced DataTable Configuration
+              $(document).ready(function() {
+                  $('#dataTable').DataTable({
+                      order: [[0, 'desc']],
+                      pageLength: 10,
+                      language: {
+                          search: "_INPUT_",
+                          searchPlaceholder: "Search records...",
+                          paginate: {
+                              next: '<i class="fas fa-chevron-right"></i>',
+                              previous: '<i class="fas fa-chevron-left"></i>'
+                          }
+                      },
+                      dom: '<"top"f>rt<"bottom"lp><"clear">',
+                      columnDefs: [{
+                          targets: '_all',
+                          className: 'align-middle'
+                      }]
+                  });
+              });
+
+
+
+
+
+
+
+
+      // Enhanced Professional Timeline Chart
+      const timelineLayout = {
+          plot_bgcolor: 'rgba(0,0,0,0)',
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          font: {
+              family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+              color: '#3a3b45'
+          },
+          xaxis: {
+              gridcolor: 'var(--chart-grid-color)',
+              linecolor: 'var(--chart-grid-color)',
+              title: {
+                  text: 'Date',
+                  standoff: 20,
+                  font: { size: 12, weight: 600 }
+              },
+              tickformat: '%b %d',
+              rangeslider: {
+                  visible: true,
+                  thickness: 0.05,
+                  bgcolor: '#f8f9fc'
+              },
+              rangeselector: {
+                  buttons: [{
+                      step: 'month',
+                      stepmode: 'backward',
+                      count: 1,
+                      label: '1M'
+                  }, {
+                      step: 'month',
+                      stepmode: 'backward',
+                      count: 3,
+                      label: '3M'
+                  }, {
+                      step: 'all',
+                      label: 'All'
+                  }]
+              }
+          },
+          yaxis: {
+              gridcolor: 'var(--chart-grid-color)',
+              linecolor: 'var(--chart-grid-color)',
+              title: {
+                  text: 'Total Mappings',
+                  standoff: 20,
+                  font: { size: 12, weight: 600 }
+              },
+              tickprefix: '',
+              ticksuffix: ' ',
+              separatethousands: true
+          },
+          margin: { t: 60, b: 80, l: 80, r: 40 },
+          hoverlabel: {
+              bgcolor: '#ffffff',
+              bordercolor: '#e3e6f0',
+              font: { color: '#3a3b45' }
+          },
+          showlegend: false,
+          annotations: [{
+              x: {{ chart_data.dates[-1] | tojson }},
+              y: {{ chart_data.total_mappings | max | tojson }},
+              xref: 'x',
+              yref: 'y',
+              text: 'Current',
+              showarrow: true,
+              arrowhead: 4,
+              ax: 0,
+              ay: -40,
+              bgcolor: 'rgba(255,255,255,0.9)',
+              borderpad: 4,
+              font: { size: 12 }
+          }]
+      };
+
+      const timelineData = [{
+          x: {{ chart_data.dates | tojson }},
+          y: {{ chart_data.total_mappings | tojson }},
+          type: 'scatter',
+          mode: 'lines+markers',
+          line: {
+              color: 'var(--primary-color)',
+              width: 2.5,
+              shape: 'spline',
+              smoothing: 0.5
+          },
+          marker: {
+              size: 8,
+              color: 'white',
+              line: { width: 2, color: 'var(--primary-color)' },
+              opacity: 0.9
+          },
+          hovertemplate: '<b>%{x|%b %d, %Y}</b><br>' +
+                         '<span style="color:var(--primary-color)">●</span> Mappings: <b>%{y:,}</b>' +
+                         '<extra></extra>',
+          fill: 'tozeroy',
+          fillcolor: 'rgba(78, 115, 223, 0.05)'
+      }];
+
+      // Add moving average trace
+      if ({{ chart_data.dates | length | tojson }} > 7) {
+          const movingAverage = [];
+          const windowSize = 7;
+
+          for (let i = 0; i < {{ chart_data.total_mappings | length | tojson }}; i++) {
+              const start = Math.max(0, i - windowSize + 1);
+              const subset = {{ chart_data.total_mappings | tojson }}.slice(start, i + 1);
+              movingAverage.push(subset.reduce((a, b) => a + b) / subset.length);
+          }
+
+          timelineData.push({
+              x: {{ chart_data.dates | tojson }},
+              y: movingAverage,
+              type: 'scatter',
+              mode: 'lines',
+              line: {
+                  color: '#ff6b6b',
+                  width: 1.5,
+                  dash: 'dot'
+              },
+              name: '7-Day Average',
+              hovertemplate: '<b>%{x|%b %d, %Y}</b><br>' +
+                             '<span style="color:#ff6b6b">➤</span> 7D Avg: <b>%{y:,.0f}</b>' +
+                             '<extra></extra>'
+          });
+      }
+
+      Plotly.newPlot('timelineChart', timelineData, timelineLayout, {
+          responsive: true,
+          displayModeBar: true,
+          modeBarButtonsToRemove: ['toImage', 'select2d', 'lasso2d'],
+          modeBarButtonsToAdd: [{
+              name: 'Download SVG',
+              icon: Plotly.Icons.camera,
+              click: function(gd) {
+                  Plotly.downloadImage(gd, {
+                      format: 'svg',
+                      filename: 'mapping-growth-timeline',
+                      width: 1200,
+                      height: 600
+                  });
+              }
+          }]
+      });
+
+
+
+
+
+
+        // Success Ratio Chart (Enhanced)
+        const successLayout = {
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {
+                family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+                color: '#3a3b45'
+            },
+            xaxis: {
+                gridcolor: 'var(--chart-grid-color)',
+                linecolor: 'var(--chart-grid-color)',
+                title: {
+                    text: 'Date',
+                    standoff: 20,
+                    font: { size: 12, weight: 600 }
+                },
+                tickformat: '%b %d'
+            },
+            yaxis: {
+                gridcolor: 'var(--chart-grid-color)',
+                linecolor: 'var(--chart-grid-color)',
+                title: {
+                    text: 'Success Rate (%)',
+                    standoff: 20,
+                    font: { size: 12, weight: 600 }
+                },
+                range: [0, 100],
+                ticksuffix: '%'
+            },
+            margin: { t: 50, b: 80, l: 80, r: 40 },
+            hoverlabel: {
+                bgcolor: '#ffffff',
+                bordercolor: '#e3e6f0',
+                font: { color: '#3a3b45' }
+            },
+            showlegend: false,
+            annotations: [{
+                x: {{ chart_data.dates[-1] | tojson }},
+                y: {{ chart_data.success_ratio[-1] | tojson }},
+                text: 'Current',
+                showarrow: true,
+                arrowhead: 4,
+                ax: 0,
+                ay: -40,
+                bgcolor: 'rgba(255,255,255,0.9)',
+                font: { size: 12 }
+            }]
+        };
+
+        const successData = [{
+            x: {{ chart_data.dates | tojson }},
+            y: {{ chart_data.success_ratio | map('round', 1) | list | tojson }},
+            type: 'bar',
+            marker: {
+                color: 'var(--success-color)',
+                opacity: 0.9,
+                line: { width: 0 },
+                gradient: {
+                    type: 'vertical',
+                    color: ['rgba(28, 200, 138, 0.9)', 'rgba(28, 200, 138, 0.3)']
+                }
+            },
+            hovertemplate: '<b>%{x|%b %d}</b><br>Success Rate: <b>%{y:.1f}%</b><extra></extra>'
+        }];
+
+        Plotly.newPlot('successChart', successData, successLayout);
+
+        // New Chart 1: Daily Change Comparison
+        const dailyChangeLayout = {
+            title: 'Daily Changes Comparison',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            xaxis: {
+                title: 'Date',
+                gridcolor: 'var(--chart-grid-color)'
+            },
+            yaxis: {
+                title: 'Change Count',
+                gridcolor: 'var(--chart-grid-color)'
+            },
+            margin: { t: 50, b: 80, l: 80, r: 40 },
+            showlegend: true,
+            legend: { x: 1, y: 1, xanchor: 'right' }
+        };
+
+        const dailyChangeData = [
+            {
+                x: {{ chart_data.dates | tojson }},
+                y: {{ chart_data.new_success | tojson }},
+                name: 'New Success',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#4e73df', width: 2 }
+            },
+            {
+                x: {{ chart_data.dates | tojson }},
+                y: {{ chart_data.update_success | tojson }},
+                name: 'Update Success',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#36b9cc', width: 2 }
+            }
+        ];
+
+        Plotly.newPlot('dailyChangeChart', dailyChangeData, dailyChangeLayout);
+
+        // New Chart 2: Success Distribution
+        const distributionLayout = {
+            title: 'Success Distribution',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            showlegend: true,
+            legend: { 
+                orientation: 'h',
+                yanchor: 'bottom',
+                y: -0.3,
+                xanchor: 'center',
+                x: 0.5
+            },
+            margin: { t: 50, b: 80, l: 80, r: 40 }
+        };
+
+        const distributionData = [{
+            values: [
+                {{ chart_data.new_success | sum | tojson }},
+                {{ chart_data.update_success | sum | tojson }}
+            ],
+            labels: ['New Success', 'Update Success'],
+            type: 'pie',
+            hole: 0.4,
+            marker: {
+                colors: ['#4e73df', '#36b9cc'],
+                line: { color: '#fff', width: 2 }
+            },
+            textinfo: 'percent+label',
+            hovertemplate: '<b>%{label}</b><br>Total: %{value:,}<extra></extra>'
+        }];
+
+        Plotly.newPlot('distributionChart', distributionData, distributionLayout);
+
+
+              // Number formatting
+              document.addEventListener('DOMContentLoaded', function() {
+                  document.querySelectorAll('.comma').forEach(el => {
+                      const num = parseInt(el.textContent.replace(/,/g, ''));
+                      if (!isNaN(num)) {
+                          el.textContent = num.toLocaleString();
+                      }
+                  });
+              });
+    </script>
+  </body>
+</html>
