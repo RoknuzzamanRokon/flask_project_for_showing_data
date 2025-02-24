@@ -195,7 +195,7 @@
                 <div>
                   <h5 class="card-title text-uppercase">Total Mappings</h5>
                   <h2 class="metric-value comma">
-                    {{ latest.global_mapping_total if latest else 0 }}
+                    {{ latest.total_mapping_hotel_ids if latest else 0 }}
                   </h2>
                 </div>
                 <div class="bg-primary text-white rounded-circle p-3">
@@ -307,6 +307,30 @@
       </div>
 
       <!-- Charts Section -->
+
+      <div class="row mt-4">
+        <div class="col-xl-9">
+          <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="m-0 text-primary">
+                <i class="fas fa-exchange-alt me-2"></i>Daily Changes Comparison
+              </h5>
+            </div>
+            <div id="dailyChangeChart" style="height: 400px"></div>
+          </div>
+        </div>
+        <div class="col-xl-3">
+          <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="m-0 text-primary">
+                <i class="fas fa-chart-pie me-2"></i>Success Distribution
+              </h5>
+            </div>
+            <div id="distributionChart" style="height: 400px"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="row mt-4 g-4">
         <div class="col-xl-8">
           <div class="chart-container">
@@ -336,24 +360,10 @@
         </div>
       </div>
 
-      <div class="row mt-4">
-    <div class="col-xl-6">
-        <div class="chart-container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="m-0 text-primary"><i class="fas fa-exchange-alt me-2"></i>Daily Changes Comparison</h5>
-            </div>
-            <div id="dailyChangeChart" style="height: 400px;"></div>
-        </div>
-    </div>
-    <div class="col-xl-6">
-        <div class="chart-container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="m-0 text-primary"><i class="fas fa-chart-pie me-2"></i>Success Distribution</h5>
-            </div>
-            <div id="distributionChart" style="height: 400px;"></div>
-        </div>
-    </div>
-</div>
+
+
+
+
 
 
 
@@ -373,18 +383,21 @@
                     <thead class="bg-light">
                       <tr>
                         <th>Date</th>
+                        <th>Total Vervotech IDs</th>
+                        <th>Total Giata IDs</th>
                         <th>New Success</th>
                         <th>New Skipped</th>
                         <th>Update Success</th>
                         <th>Update Skipped</th>
-                        <th>Total Vervotech IDs</th>
-                        <th>Total Giata IDs</th>
+                        <th>Total Mapping IDs</th>
                       </tr>
                     </thead>
                     <tbody>
                       {% for entry in data %}
                       <tr>
                         <td>{{ entry.date }}</td>
+                        <td class="comma">{{ entry.vervotech_ids_total }}</td>
+                        <td class="comma">{{ entry.giata_ids_total }}</td>
                         <td class="comma">
                           {{ entry.vh_new_newFile_updateSuccess }}
                         </td>
@@ -398,8 +411,10 @@
                         <td class="comma">
                           {{ entry.vh_update_newFile_updateSkipping }}
                         </td>
-                        <td class="comma">{{ entry.vervotech_ids_total }}</td>
-                        <td class="comma">{{ entry.giata_ids_total }}</td>
+
+                        <td class="comma">
+                          {{ entry.total_mapping_hotel_ids }}
+                        </td>
                       </tr>
                       {% endfor %}
                     </tbody>
@@ -447,223 +462,7 @@
 
 
 
-      // Enhanced Professional Timeline Chart
-      const timelineLayout = {
-          plot_bgcolor: 'rgba(0,0,0,0)',
-          paper_bgcolor: 'rgba(0,0,0,0)',
-          font: {
-              family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-              color: '#3a3b45'
-          },
-          xaxis: {
-              gridcolor: 'var(--chart-grid-color)',
-              linecolor: 'var(--chart-grid-color)',
-              title: {
-                  text: 'Date',
-                  standoff: 20,
-                  font: { size: 12, weight: 600 }
-              },
-              tickformat: '%b %d',
-              rangeslider: {
-                  visible: true,
-                  thickness: 0.05,
-                  bgcolor: '#f8f9fc'
-              },
-              rangeselector: {
-                  buttons: [{
-                      step: 'month',
-                      stepmode: 'backward',
-                      count: 1,
-                      label: '1M'
-                  }, {
-                      step: 'month',
-                      stepmode: 'backward',
-                      count: 3,
-                      label: '3M'
-                  }, {
-                      step: 'all',
-                      label: 'All'
-                  }]
-              }
-          },
-          yaxis: {
-              gridcolor: 'var(--chart-grid-color)',
-              linecolor: 'var(--chart-grid-color)',
-              title: {
-                  text: 'Total Mappings',
-                  standoff: 20,
-                  font: { size: 12, weight: 600 }
-              },
-              tickprefix: '',
-              ticksuffix: ' ',
-              separatethousands: true
-          },
-          margin: { t: 60, b: 80, l: 80, r: 40 },
-          hoverlabel: {
-              bgcolor: '#ffffff',
-              bordercolor: '#e3e6f0',
-              font: { color: '#3a3b45' }
-          },
-          showlegend: false,
-          annotations: [{
-              x: {{ chart_data.dates[-1] | tojson }},
-              y: {{ chart_data.total_mappings | max | tojson }},
-              xref: 'x',
-              yref: 'y',
-              text: 'Current',
-              showarrow: true,
-              arrowhead: 4,
-              ax: 0,
-              ay: -40,
-              bgcolor: 'rgba(255,255,255,0.9)',
-              borderpad: 4,
-              font: { size: 12 }
-          }]
-      };
-
-      const timelineData = [{
-          x: {{ chart_data.dates | tojson }},
-          y: {{ chart_data.total_mappings | tojson }},
-          type: 'scatter',
-          mode: 'lines+markers',
-          line: {
-              color: 'var(--primary-color)',
-              width: 2.5,
-              shape: 'spline',
-              smoothing: 0.5
-          },
-          marker: {
-              size: 8,
-              color: 'white',
-              line: { width: 2, color: 'var(--primary-color)' },
-              opacity: 0.9
-          },
-          hovertemplate: '<b>%{x|%b %d, %Y}</b><br>' +
-                         '<span style="color:var(--primary-color)">●</span> Mappings: <b>%{y:,}</b>' +
-                         '<extra></extra>',
-          fill: 'tozeroy',
-          fillcolor: 'rgba(78, 115, 223, 0.05)'
-      }];
-
-      // Add moving average trace
-      if ({{ chart_data.dates | length | tojson }} > 7) {
-          const movingAverage = [];
-          const windowSize = 7;
-
-          for (let i = 0; i < {{ chart_data.total_mappings | length | tojson }}; i++) {
-              const start = Math.max(0, i - windowSize + 1);
-              const subset = {{ chart_data.total_mappings | tojson }}.slice(start, i + 1);
-              movingAverage.push(subset.reduce((a, b) => a + b) / subset.length);
-          }
-
-          timelineData.push({
-              x: {{ chart_data.dates | tojson }},
-              y: movingAverage,
-              type: 'scatter',
-              mode: 'lines',
-              line: {
-                  color: '#ff6b6b',
-                  width: 1.5,
-                  dash: 'dot'
-              },
-              name: '7-Day Average',
-              hovertemplate: '<b>%{x|%b %d, %Y}</b><br>' +
-                             '<span style="color:#ff6b6b">➤</span> 7D Avg: <b>%{y:,.0f}</b>' +
-                             '<extra></extra>'
-          });
-      }
-
-      Plotly.newPlot('timelineChart', timelineData, timelineLayout, {
-          responsive: true,
-          displayModeBar: true,
-          modeBarButtonsToRemove: ['toImage', 'select2d', 'lasso2d'],
-          modeBarButtonsToAdd: [{
-              name: 'Download SVG',
-              icon: Plotly.Icons.camera,
-              click: function(gd) {
-                  Plotly.downloadImage(gd, {
-                      format: 'svg',
-                      filename: 'mapping-growth-timeline',
-                      width: 1200,
-                      height: 600
-                  });
-              }
-          }]
-      });
-
-
-
-
-
-
-        // Success Ratio Chart (Enhanced)
-        const successLayout = {
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            font: {
-                family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-                color: '#3a3b45'
-            },
-            xaxis: {
-                gridcolor: 'var(--chart-grid-color)',
-                linecolor: 'var(--chart-grid-color)',
-                title: {
-                    text: 'Date',
-                    standoff: 20,
-                    font: { size: 12, weight: 600 }
-                },
-                tickformat: '%b %d'
-            },
-            yaxis: {
-                gridcolor: 'var(--chart-grid-color)',
-                linecolor: 'var(--chart-grid-color)',
-                title: {
-                    text: 'Success Rate (%)',
-                    standoff: 20,
-                    font: { size: 12, weight: 600 }
-                },
-                range: [0, 100],
-                ticksuffix: '%'
-            },
-            margin: { t: 50, b: 80, l: 80, r: 40 },
-            hoverlabel: {
-                bgcolor: '#ffffff',
-                bordercolor: '#e3e6f0',
-                font: { color: '#3a3b45' }
-            },
-            showlegend: false,
-            annotations: [{
-                x: {{ chart_data.dates[-1] | tojson }},
-                y: {{ chart_data.success_ratio[-1] | tojson }},
-                text: 'Current',
-                showarrow: true,
-                arrowhead: 4,
-                ax: 0,
-                ay: -40,
-                bgcolor: 'rgba(255,255,255,0.9)',
-                font: { size: 12 }
-            }]
-        };
-
-        const successData = [{
-            x: {{ chart_data.dates | tojson }},
-            y: {{ chart_data.success_ratio | map('round', 1) | list | tojson }},
-            type: 'bar',
-            marker: {
-                color: 'var(--success-color)',
-                opacity: 0.9,
-                line: { width: 0 },
-                gradient: {
-                    type: 'vertical',
-                    color: ['rgba(28, 200, 138, 0.9)', 'rgba(28, 200, 138, 0.3)']
-                }
-            },
-            hovertemplate: '<b>%{x|%b %d}</b><br>Success Rate: <b>%{y:.1f}%</b><extra></extra>'
-        }];
-
-        Plotly.newPlot('successChart', successData, successLayout);
-
-        // New Chart 1: Daily Change Comparison
+        // Chart 1: Daily Change Comparison
         const dailyChangeLayout = {
             title: 'Daily Changes Comparison',
             plot_bgcolor: 'rgba(0,0,0,0)',
@@ -702,13 +501,13 @@
 
         Plotly.newPlot('dailyChangeChart', dailyChangeData, dailyChangeLayout);
 
-        // New Chart 2: Success Distribution
+        // Chart 2: Success Distribution
         const distributionLayout = {
             title: 'Success Distribution',
             plot_bgcolor: 'rgba(0,0,0,0)',
             paper_bgcolor: 'rgba(0,0,0,0)',
             showlegend: true,
-            legend: { 
+            legend: {
                 orientation: 'h',
                 yanchor: 'bottom',
                 y: -0.3,
@@ -737,15 +536,278 @@
         Plotly.newPlot('distributionChart', distributionData, distributionLayout);
 
 
-              // Number formatting
-              document.addEventListener('DOMContentLoaded', function() {
-                  document.querySelectorAll('.comma').forEach(el => {
-                      const num = parseInt(el.textContent.replace(/,/g, ''));
-                      if (!isNaN(num)) {
-                          el.textContent = num.toLocaleString();
-                      }
-                  });
-              });
+
+
+
+
+
+      // Chart 3: Mapping Growth Timeline
+
+      const analyticLayout = {
+          plot_bgcolor: '#ffffff',
+          paper_bgcolor: '#ffffff',
+          font: {
+              family: 'Arial, sans-serif',
+              color: '#2d3436'
+          },
+          xaxis: {
+              showgrid: true,
+              gridcolor: '#e0e0e0',
+              linecolor: '#2d3436',
+              title: {
+                  text: 'Date',
+                  font: { size: 14, weight: 'bold' }
+              },
+              tickformat: '%b %Y',
+              showspikes: true,
+              spikethickness: 1
+          },
+          yaxis: {
+              showgrid: true,
+              gridcolor: '#e0e0e0',
+              linecolor: '#2d3436',
+              title: {
+                  text: 'Total Mappings',
+                  font: { size: 14, weight: 'bold' }
+              },
+              separatethousands: true,
+              fixedrange: true
+          },
+          margin: { t: 40, b: 60, l: 60, r: 30 },
+          hovermode: 'x unified',
+          showlegend: true,
+          legend: {
+              orientation: 'h',
+              xanchor: 'center',
+              x: 0.5,
+              y: -0.25
+          }
+      };
+
+      const analyticData = [{
+          x: {{ chart_data.dates | tojson }},
+          y: {{ chart_data.total_mappings | tojson }},
+          type: 'scatter',
+          mode: 'lines',
+          name: 'Daily Mappings',
+          line: {
+              color: '#2e86de',
+              width: 1.5,
+              shape: 'linear'
+          },
+          hovertemplate: '<b>%{x|%Y-%m-%d}</b><br>Mappings: <b>%{y:,}</b><extra></extra>'
+      }];
+
+      // Enhanced Moving Average Calculation
+      if ({{ chart_data.dates | length | tojson }} > 7) {
+          const movingAverage = [];
+          const windowSize = 7;
+          const mappingData = {{ chart_data.total_mappings | tojson }};
+
+          for (let i = 0; i < mappingData.length; i++) {
+              const start = Math.max(0, i - windowSize + 1);
+              const subset = mappingData.slice(start, i + 1);
+              movingAverage.push(+(subset.reduce((a, b) => a + b) / subset.length).toFixed(2));
+          }
+
+          analyticData.push({
+              x: {{ chart_data.dates | tojson }},
+              y: movingAverage,
+              type: 'scatter',
+              mode: 'lines',
+              name: '7-Day Moving Average',
+              line: {
+                  color: '#e74c3c',
+                  width: 2,
+                  dash: 'solid'
+              },
+              hovertemplate: '<b>%{x|%Y-%m-%d}</b><br>7D Avg: <b>%{y:,.2f}</b><extra></extra>'
+          });
+      }
+
+      Plotly.newPlot('timelineChart', analyticData, analyticLayout, {
+          responsive: true,
+          displayModeBar: true,
+          modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+          modeBarButtonsToAdd: [{
+              name: 'Download CSV',
+              icon: Plotly.Icons.disk,
+              click: function(gd) {
+                  const csvContent = "data:text/csv;charset=utf-8,"
+                      + analyticData.map(trace =>
+                          trace.x.map((d, i) => `${d},${trace.y[i]}`).join('\n')
+                      ).join('\n');
+                  const encodedUri = encodeURI(csvContent);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", encodedUri);
+                  link.setAttribute("download", "mapping_data.csv");
+                  document.body.appendChild(link);
+                  link.click();
+              }
+          }]
+      });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      // Enhanced Business Analytic Success Ratio Chart with Advanced Features
+const targetSuccess = 80; // Target success rate reference
+
+const enhancedSuccessLayout = {
+  title: {
+    text: 'Daily Success Ratio Analysis',
+    font: { size: 18, family: 'Arial, sans-serif', color: '#4A4A4A' }
+  },
+  font: {
+    family: 'Arial, sans-serif',
+    color: '#4A4A4A'
+  },
+  plot_bgcolor: '#ffffff',
+  paper_bgcolor: '#ffffff',
+  xaxis: {
+    title: {
+      text: 'Date',
+      font: { size: 14, weight: '600' }
+    },
+    tickformat: '%b %d',
+    showgrid: true,
+    gridcolor: '#eaeaea',
+    rangeselector: {
+      buttons: [{
+          count: 7,
+          label: '1W',
+          step: 'day',
+          stepmode: 'backward'
+        },
+        {
+          count: 14,
+          label: '2W',
+          step: 'day',
+          stepmode: 'backward'
+        },
+        {
+          step: 'all',
+          label: 'All'
+        }
+      ]
+    },
+    rangeslider: { visible: true }
+  },
+  yaxis: {
+    title: {
+      text: 'Success Rate (%)',
+      font: { size: 14, weight: '600' }
+    },
+    range: [0, 100],
+    ticksuffix: '%',
+    showgrid: true,
+    gridcolor: '#eaeaea'
+  },
+  margin: { t: 80, b: 80, l: 80, r: 40 },
+  hovermode: 'closest',
+  shapes: [
+    // Reference line for target success rate
+    {
+      xref: 'paper',
+      x0: 0,
+      x1: 1,
+      yref: 'y',
+      y0: targetSuccess,
+      y1: targetSuccess,
+
+    }
+  ],
+  annotations: [{
+    // Annotation for the latest data point
+    x: {{ chart_data.dates[-1] | tojson }},
+    y: {{ chart_data.success_ratio[-1] | tojson }},
+    xref: 'x',
+    yref: 'y',
+    text: 'Latest',
+    font: { size: 12, color: '#4A4A4A' },
+    showarrow: true,
+    arrowhead: 2,
+    ax: 0,
+    ay: -30
+  },
+  {
+    // Annotation for the target reference line
+    x: 1,
+    xref: 'paper',
+    y: targetSuccess,
+    yref: 'y',
+    text: 'Target (' + targetSuccess + '%)',
+    showarrow: false,
+    xanchor: 'left',
+    font: { size: 12, color: '#e74c3c' },
+    bgcolor: '#ffffff'
+  }]
+};
+
+const enhancedSuccessData = [{
+  x: {{ chart_data.dates | tojson }},
+  y: {{ chart_data.success_ratio | map('round', 1) | list | tojson }},
+  type: 'bar',
+  marker: {
+    color: '#1abc9c',
+    opacity: 0.85,
+    line: { width: 0 }
+  },
+  hovertemplate: '<b>%{x|%b %d}</b><br>Success Rate: <b>%{y:.1f}%</b><extra></extra>'
+}];
+
+// Compute and add 7-day moving average for success ratio if sufficient data exists
+if ({{ chart_data.dates | length | tojson }} > 7) {
+  const successData = {{ chart_data.success_ratio | map('round', 1) | list | tojson }};
+  const movingAverage = [];
+  const windowSize = 7;
+  for (let i = 0; i < successData.length; i++) {
+    const start = Math.max(0, i - windowSize + 1);
+    const subset = successData.slice(start, i + 1);
+    const avg = subset.reduce((a, b) => a + b, 0) / subset.length;
+    movingAverage.push(avg);
+  }
+  
+  enhancedSuccessData.push({
+    x: {{ chart_data.dates | tojson }},
+    y: movingAverage,
+    type: 'scatter',
+    mode: 'lines',
+    line: { color: '#34495e', width: 2 },
+    name: '7-Day Moving Avg',
+    hovertemplate: '<b>%{x|%b %d}</b><br>7-Day Avg: <b>%{y:.1f}%</b><extra></extra>'
+  });
+}
+
+Plotly.newPlot('successChart', enhancedSuccessData, enhancedSuccessLayout, { responsive: true });
+
+
+
+
+
+
+
+
+        // Number formatting
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.comma').forEach(el => {
+                const num = parseInt(el.textContent.replace(/,/g, ''));
+                if (!isNaN(num)) {
+                    el.textContent = num.toLocaleString();
+                }
+            });
+        });
     </script>
   </body>
 </html>

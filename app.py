@@ -166,6 +166,7 @@ def get_json_data():
                 "created_at": row_dict.get('created_at'),
                 "total_vervotech_id": row_dict.get('total_vervotech_id'),
                 "total_giata_id": row_dict.get('total_giata_id'),
+                "total_mapping_hotel_ids": row_dict.get('total_mapping_hotel_ids'),
                 "update_info": {
                     "total_get_new": row_dict.get('vh_new_newFile'),
                     "find_new_data_success": row_dict.get('vh_new_newFile_updateSuccess'),
@@ -299,8 +300,7 @@ def dashboard():
 
 @app.route('/streamlit-dashboard')
 def streamlit_dashboard():
-    # Redirect to your Streamlit app's URL
-    return redirect('http://localhost:8501')  # Or use the network URL
+    return redirect('http://localhost:8501')  
 
 
 
