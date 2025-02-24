@@ -141,6 +141,19 @@ def get_last_row():
 
 
 
+@app.route('/')
+def welcome():
+    # Example data - replace with your actual data sources
+    return render_template('welcome.html',
+        total_mappings=245836,
+        success_rate=98.7,
+        daily_updates=1423,
+        data_sources=4,
+        trend_dates=['2023-01', '2023-02', '2023-03', '2023-04'],
+        trend_values=[1200, 1450, 1320, 1620]
+    )
+
+
 @app.route('/global-json-info', methods=['GET'])
 @login_required
 def get_json_data():
@@ -256,6 +269,7 @@ def dashboard():
             result = connection.execute(query)
             columns = result.keys()
             data = [dict(zip(columns, row)) for row in result.fetchall()]
+            # print(data)
         
         # Ensure date is properly formatted
         for entry in data:
