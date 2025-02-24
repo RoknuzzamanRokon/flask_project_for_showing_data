@@ -58,7 +58,6 @@
       .chart-container {
         background: white;
         border-radius: 1rem;
-        padding: 1.5rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       }
 
@@ -133,7 +132,6 @@
       .navbar-custom {
         background: linear-gradient(135deg, #1a1d23 0%, #2b2f38 100%);
         box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-        padding: 0.8rem 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
 
@@ -182,13 +180,11 @@
       }
       .status-badge {
         font-size: 0.9rem;
-        padding: 0.5em 0.75em;
       }
       .supplier-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
-        padding: 1rem 0;
       }
       .btn-danger {
         font-size: 14px;
@@ -219,7 +215,6 @@
 
       #loginModal .modal-header {
         border-bottom: none;
-        padding-bottom: 0;
       }
 
       #loginModal .modal-title {
@@ -229,13 +224,11 @@
 
       #loginModal .form-control {
         border-radius: 8px;
-        padding: 12px;
       }
 
       #loginModal .btn-primary {
         background-color: #667eea;
         border: none;
-        padding: 12px;
         border-radius: 8px;
         font-weight: 500;
         transition: all 0.3s ease;
@@ -297,7 +290,7 @@
 
       @keyframes spin {
         from {
-          transform: rotate(90deg);
+          transform: rotate(0deg);
         }
         to {
           transform: rotate(360deg);
@@ -310,10 +303,51 @@
 
       .icon-3d-container:hover .spinning-icon {
         animation-duration: 2s;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        filter: drop-shadow(0 2px 4px rgba(219, 0, 0, 0.1));
       }
       .icon-container:hover .spinning-icon {
         animation-duration: 2s;
+      }
+
+      .title-text {
+        font-size: 1.75rem; /* 28px */
+        letter-spacing: 0.5px;
+        line-height: 1.2;
+      }
+
+      /* If you need even bigger text sizes */
+      .title-text.xxl {
+        font-size: 2.5rem;
+      } /* 40px */
+      .title-text.xl {
+        font-size: 2rem;
+      } /* 32px */
+      .title-text.lg {
+        font-size: 1.75rem;
+      } /* 28px */
+
+      /* Previous spinning icon styles */
+      .icon-container {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+      }
+
+      .spinning-icon {
+        font-size: 2rem;
+        animation: spin 4s linear infinite;
+        transform-origin: center center;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
     </style>
   </head>
@@ -327,12 +361,12 @@
             <!-- HTML -->
             <span class="navbar-brand d-flex align-items-center mb-0">
               <div class="icon-container me-3">
-                <!-- Added wrapper container -->
                 <i class="fas fa-globe-americas text-primary spinning-icon"></i>
               </div>
               <span class="brand-text">
-                <span class="fw-light">Global</span>
-                <span class="fw-medium">Hotel Data Mapping</span>
+                <span class="fw-bold title-text"
+                  >Global Hotel Data Mapping</span
+                >
               </span>
             </span>
           </div>

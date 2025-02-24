@@ -1,33 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
-    <style></style>
-  </head>
+    <title>Login - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-  <body>
+        body {
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 420px;
+            transition: transform 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            color: #1a1a1a;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            color: #4a4a4a;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        p {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        p a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        p a:hover {
+            color: #4f46e5;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
     <div class="login-container">
-      <h2>Login</h2>
-      <form method="POST">
-        <div class="input-group">
-          <label>Username</label>
-          <input type="text" name="username" required />
-        </div>
-        <div class="input-group">
-          <label>Password</label>
-          <input type="password" name="password" required />
-        </div>
-        <button type="submit" class="btn">Login</button>
-      </form>
-      <p>
-        Don't have an account? <a href="{{ url_for('register') }}">Register</a>
-      </p>
+        <h2>Welcome Back</h2>
+        <form method="POST">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" name="username" required placeholder="Enter your username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+        <p>
+            Don't have an account? <a href="{{ url_for('register') }}">Create account</a>
+        </p>
     </div>
-  </body>
+</body>
 </html>
